@@ -1,40 +1,191 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Lokasi | MapTiler</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;800&family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#dce9f1;--ink:#0f2a3f;--muted:#5b7387;--card:#fff;--accent:#ff5a36;--line:#c2d4e0;--sea:#0f2a3f}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:'Figtree',system-ui,sans-serif;color:var(--ink);background:var(--bg);
+  background-image:radial-gradient(circle at 1px 1px,#b7cbd9 1px,transparent 0);background-size:22px 22px;padding:32px 16px}
+main{max-width:720px;margin:0 auto}
+.id{font-size:14px;color:var(--muted);margin:0 0 18px}
+.id b{color:var(--ink)}
+h1{font-family:'Fraunces',Georgia,serif;font-weight:800;font-size:clamp(34px,7vw,56px);line-height:1;margin:0 0 8px}
+.sub{margin:0 0 24px;color:var(--muted)}
+.search{display:flex;gap:8px;background:var(--card);padding:8px;border-radius:14px;border:2px solid var(--ink);box-shadow:6px 6px 0 var(--ink)}
+.search input{flex:1;min-width:0;border:0;outline:0;font:inherit;font-size:17px;padding:10px 12px;background:transparent;color:var(--ink)}
+.search button{border:0;border-radius:9px;background:var(--accent);color:#fff;font:inherit;font-weight:600;padding:0 22px;cursor:pointer}
+.search button:hover{filter:brightness(.92)}
+.search button:focus-visible,.search input:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.status{min-height:24px;margin:16px 4px;color:var(--muted)}
+.status.err{color:#c0301a;font-weight:600}
+.result{display:none;margin-top:8px}
+.result.show{display:block}
+.coord{background:var(--sea);color:#fff;border-radius:18px;padding:26px 28px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.coord small{display:block;color:#9fc0d6;margin-bottom:4px}
+.coord strong{font-family:'Fraunces',Georgia,serif;font-size:clamp(24px,5vw,38px);color:#ffb39f;word-break:break-all}
+.place{margin:18px 4px 12px;font-family:'Fraunces',Georgia,serif;font-size:20px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.item{background:var(--card);border:2px solid var(--ink);border-radius:12px;padding:14px 16px}
+.item small{color:var(--muted);display:block;margin-bottom:4px}
+.item span{font-weight:600;font-size:18px}
+.weather{margin-top:18px;background:var(--card);border:2px solid var(--ink);border-radius:18px;padding:22px 24px}
+.wtop{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.wicon{font-size:60px;line-height:1}
+.wtemp{font-family:'Fraunces',Georgia,serif;font-weight:800;font-size:clamp(40px,9vw,64px);line-height:1}
+.wcond{font-size:20px;font-weight:600}
+.wcond small{display:block;color:var(--muted);font-weight:400;font-size:14px}
+.wgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.wgrid small{display:block;color:var(--muted);margin-bottom:2px}
+.wgrid span{font-weight:600;font-size:17px}
+@media(max-width:560px){.wgrid{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.coord{grid-template-columns:1fr}.search{flex-direction:column}.search button{padding:12px}}
+</style>
 </head>
-
 <body>
+<main>
+  <p class="id"><b>Ichlas Bintang Saputra</b> &middot; NIM 20240140101</p>
+  <h1>Cari lokasi, dapatkan koordinatnya.</h1>
+  <p class="sub">Ketik nama tempat, misalnya "Kasihan, Bantul" atau "Malioboro".</p>
 
-    <h3>nama : ichlas bintang saputra</h3>
-    <h3>NIM : 20240140101</h3>
+  <div class="search">
+    <input id="lokasi" type="text" placeholder="Lokasi: masukkan nama tempat" autocomplete="off">
+    <button id="cari" type="button">Cari lokasi</button>
+  </div>
 
-    <p>
-        kota :
-        span id="kota"></span>
-    </p>
+  <div id="status" class="status" role="status"></div>
 
-    <hr>
+  <section id="result" class="result">
+    <div class="coord">
+      <div><small>Longitude</small><strong id="lon">-</strong></div>
+      <div><small>Latitude</small><strong id="lat">-</strong></div>
+    </div>
+    <p class="place" id="nama">-</p>
+    <div class="grid">
+      <div class="item"><small>Negara</small><span id="negara">-</span></div>
+      <div class="item"><small>Provinsi</small><span id="provinsi">-</span></div>
+      <div class="item"><small>Kecamatan</small><span id="kecamatan">-</span></div>
+    </div>
 
-    <p>
-        kordinat:
-        span id="negara"></span>
-    </p>
+    <div class="weather">
+      <div class="wtop">
+        <div class="wicon" id="wicon">-</div>
+        <div class="wtemp" id="wtemp">-</div>
+        <div class="wcond"><span id="wkondisi">-</span><small id="wwaktu"></small></div>
+      </div>
+      <div class="wgrid">
+        <div><small>Terasa seperti</small><span id="wfeels">-</span></div>
+        <div><small>Kelembapan</small><span id="whum">-</span></div>
+        <div><small>Angin</small><span id="wwind">-</span></div>
+        <div><small>Curah hujan</small><span id="wrain">-</span></div>
+      </div>
+    </div>
+  </section>
+</main>
 
-    <script>
-      fetch("/api/lokasi")
-        .then(response => response.json())
-        .then(data => {
-          console.log(data);
-          document.getElementById("lokasi").innerHTML = data.kota;
-          document.getElementById("negara").innerHTML = data.koordinat;
-        })
-        .catch(error => {
-          console.error(error);
-        });
-    </script>
+<script>
+  // Ganti dengan API key dari https://cloud.maptiler.com/account/keys/
+  const API_KEY = "W7n3S7IA1QaYDQkFRY3c";
 
+  const $ = id => document.getElementById(id);
+
+  // Ambil teks dari context berdasarkan awalan id (country, region, county, dst.)
+  function ambil(feature, awalan) {
+    const ctx = feature.context || [];
+    for (const a of awalan) {
+      const hit = ctx.find(c => c.id && c.id.startsWith(a + "."));
+      if (hit) return hit.text;
+      // fitur itu sendiri bisa bertipe yang dicari (mis. hasil = provinsi)
+      if (feature.id && feature.id.startsWith(a + ".")) return feature.text;
+    }
+    return "-";
+  }
+
+  function setStatus(msg, error = false) {
+    const el = $("status");
+    el.textContent = msg;
+    el.className = "status" + (error ? " err" : "");
+  }
+
+  // Kode cuaca WMO -> [kondisi, ikon]
+  const KODE = {
+    0:["Cerah","☀️"],1:["Cerah berawan","🌤️"],2:["Berawan sebagian","⛅"],3:["Mendung","☁️"],
+    45:["Berkabut","🌫️"],48:["Kabut beku","🌫️"],
+    51:["Gerimis ringan","🌦️"],53:["Gerimis","🌦️"],55:["Gerimis lebat","🌧️"],
+    56:["Gerimis beku","🌧️"],57:["Gerimis beku lebat","🌧️"],
+    61:["Hujan ringan","🌧️"],63:["Hujan sedang","🌧️"],65:["Hujan lebat","🌧️"],
+    66:["Hujan beku","🌧️"],67:["Hujan beku lebat","🌧️"],
+    71:["Salju ringan","🌨️"],73:["Salju","🌨️"],75:["Salju lebat","❄️"],77:["Butiran salju","❄️"],
+    80:["Hujan lokal ringan","🌦️"],81:["Hujan lokal sedang","🌧️"],82:["Hujan lokal lebat","⛈️"],
+    85:["Salju lokal","🌨️"],86:["Salju lokal lebat","❄️"],
+    95:["Badai petir","⛈️"],96:["Badai petir + es","⛈️"],99:["Badai petir + es lebat","⛈️"]
+  };
+
+  // Cuaca terkini dari Open-Meteo (tanpa API key)
+  async function ambilCuaca(lat, lon) {
+    const url = "https://api.open-meteo.com/v1/forecast" +
+      `?latitude=${lat}&longitude=${lon}` +
+      "&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m" +
+      "&timezone=auto";
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Data cuaca gagal dimuat (status " + res.status + ").");
+    const c = (await res.json()).current;
+    console.log(c);
+
+    const [kondisi, ikon] = KODE[c.weather_code] || ["Tidak diketahui", "❔"];
+    $("wicon").textContent = ikon;
+    $("wtemp").textContent = Math.round(c.temperature_2m) + "°C";
+    $("wkondisi").textContent = kondisi;
+    $("wwaktu").textContent = "Diperbarui " + c.time.replace("T", " ");
+    $("wfeels").textContent = Math.round(c.apparent_temperature) + "°C";
+    $("whum").textContent = c.relative_humidity_2m + "%";
+    $("wwind").textContent = c.wind_speed_10m + " km/j";
+    $("wrain").textContent = c.precipitation + " mm";
+  }
+
+  async function cariLokasi() {
+    const q = $("lokasi").value.trim();
+    if (!q) { setStatus("Isi nama lokasi dulu.", true); return; }
+
+    setStatus("Memuat data...");
+    $("result").classList.remove("show");
+
+    try {
+      const url = `https://api.maptiler.com/geocoding/${encodeURIComponent(q)}.json?key=${API_KEY}&limit=1&language=id`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("API mengembalikan status " + res.status + ". Cek API key kamu.");
+      const data = await res.json();
+      console.log(data);
+
+      if (!data.features || data.features.length === 0) {
+        setStatus("Lokasi tidak ditemukan. Coba nama yang lebih spesifik.", true);
+        return;
+      }
+
+      const f = data.features[0];
+      const [lon, lat] = f.center;
+
+      $("lon").textContent = lon.toFixed(6);
+      $("lat").textContent = lat.toFixed(6);
+      $("nama").textContent = f.place_name;
+      $("negara").textContent = ambil(f, ["country"]);
+      $("provinsi").textContent = ambil(f, ["region", "state"]);
+      $("kecamatan").textContent = ambil(f, ["municipality", "county", "subregion", "locality", "place"]);
+
+      await ambilCuaca(lat, lon);
+
+      $("result").classList.add("show");
+      setStatus("");
+    } catch (err) {
+      console.error(err);
+      setStatus(err.message, true);
+    }
+  }
+
+  $("cari").addEventListener("click", cariLokasi);
+  $("lokasi").addEventListener("keydown", e => { if (e.key === "Enter") cariLokasi(); });
+</script>
 </body>
 </html>
